@@ -1,0 +1,110 @@
+# Edge: Caddy (HTTP/3) + CrowdSec.
+# Dockge: stack dir has .env (copy of instance/caddy/.env).
+# Local: docker compose -f caddy/docker-compose.yml --env-file instance/caddy/.env up -d
+#
+# HTTP/3 needs Caddyfile h1/h2/h3, host UDP/443, router UDP/443, tunables rmem_*.
+# Do not mount a volume over CrowdSec /etc/crowdsec (empty overlay crash-loops).
+#
+# TrueNAS catalog apps are reached via host.docker.internal:<published port>
+# (they sit on ix-* networks, not `proxy`). Dockge stacks keep container DNS.
+
+name: caddy
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+x-logging: &json-log-rotation
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+x-mem-cap: &mem-cap-8g
+  mem_limit: 8g
+
+networks:
+  proxy:
+    name: proxy
+  nextcloud-aio:
+    name: nextcloud-aio
+
+volumes:
+  caddy_data:
+    name: caddy_data
+  caddy_config:
+    name: caddy_config
+  caddy_logs:
+    name: caddy_logs
+  caddy_crowdsec_data:
+    name: caddy_crowdsec_data
+
+services:
+  caddy:
+    image: ghcr.io/serfriz/caddy-desec-crowdsec-geoip-ratelimit:2.11
+    container_name: caddy
+    <<: [*default-restart, *json-log-rotation]
+    mem_limit: 1536m
+    cap_add:
+      # QUIC / HTTP/3 bind + larger UDP buffers
+      - NET_ADMIN
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    env_file:
+      - .env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - caddy_logs:/var/log/caddy
+    extra_hosts:
+      # Live host ports (from the {app}/README.md)
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      crowdsec:
+        condition: service_healthy
+      home-gw:
+        condition: service_started
+    networks:
+      - proxy
+      - nextcloud-aio
+
+  # Caddy `proxy` net cannot reach other Proxmox VMs; host-gw can.
+  home-gw:
+    image: alpine/socat:1.8.0.1
+    container_name: home-gw
+    <<: [*default-restart, *json-log-rotation]
+    network_mode: host
+    env_file:
+      - .env
+    command: TCP-LISTEN:${HOME_GW_PORT},fork,reuseaddr TCP:${HOME_LAN}:${HOME_LAN_PORT}
+
+  crowdsec:
+    image: crowdsecurity/crowdsec:v1.7.8
+    container_name: crowdsec
+    <<: [*default-restart, *json-log-rotation, *mem-cap-8g]
+    labels:
+      - wud.watch=true
+    healthcheck:
+      test: ["CMD", "cscli", "lapi", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    env_file:
+      - .env
+    environment:
+      COLLECTIONS: "crowdsecurity/caddy crowdsecurity/http-cve crowdsecurity/linux crowdsecurity/whitelist-good-actors"
+      BOUNCER_KEY_CADDY: ${CROWDSEC_BOUNCER_KEY_CADDY}
+      ENROLL_KEY: ${CROWDSEC_ENROLL_KEY}
+      GID: "1000"
+    volumes:
+      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+      - ./crowdsec/profiles.yaml:/etc/crowdsec/profiles.yaml:ro
+      - ./crowdsec/whitelist.yaml:/etc/crowdsec/parsers/s02-enrich/local-whitelist.yaml:ro
+      - caddy_logs:/var/log/caddy:ro
+      - caddy_crowdsec_data:/var/lib/crowdsec/data
+    networks:
+      - proxy

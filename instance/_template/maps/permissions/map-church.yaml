@@ -1,0 +1,6 @@
+# church
+teams: map-church-teams.yaml
+youth: map-church-youth.yaml
+guest: map-church-guest.yaml
+tech: map-church-tech.yaml
+infra: map-church-infra.yaml

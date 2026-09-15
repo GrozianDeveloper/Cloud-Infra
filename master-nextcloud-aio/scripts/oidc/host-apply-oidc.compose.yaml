@@ -1,0 +1,15 @@
+name: nc-aio-oidc
+
+services:
+  nc-aio-oidc:
+    image: docker:27-cli
+    container_name: nc-aio-oidc
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/master-nextcloud-aio:/stack:ro
+      - /mnt/apps/dockge/nc-aio-oidc:/out
+    working_dir: /stack
+    command: ["sh", "-c", "sh /stack/scripts/oidc/host-apply-oidc.sh > /out/apply.log 2>&1"]
+    environment:
+      STACK_DIR: /stack

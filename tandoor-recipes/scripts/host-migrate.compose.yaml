@@ -1,0 +1,20 @@
+# One-shot: django migrate inside catalog recipes container.
+name: tandoor-migrate
+
+services:
+  apply:
+    image: docker:27-cli
+    container_name: tandoor-migrate
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/tandoor-migrate:/out
+    command:
+      - sh
+      - -c
+      - |
+        c=$$(docker ps --filter name=ix-tandoor-recipes --format '{{.Names}}' | grep recipes | grep -v postgres | grep -v permission | grep -v upgrade | head -n1)
+        echo CONTAINER:$$c | tee /out/out.txt
+        docker exec $$c sh -c 'printf "DB_ENGINE=%s POSTGRES_HOST=%s POSTGRES_DB=%s POSTGRES_USER=%s\n" "$$DB_ENGINE" "$$POSTGRES_HOST" "$$POSTGRES_DB" "$$POSTGRES_USER"' >> /out/out.txt 2>&1
+        docker exec -w /opt/recipes $$c /opt/recipes/venv/bin/python manage.py migrate --noinput >> /out/out.txt 2>&1
+        echo migrate_exit:$$? >> /out/out.txt

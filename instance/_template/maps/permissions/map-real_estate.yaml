@@ -1,0 +1,37 @@
+# family real_estate
+- name: Недвижимость
+  idea: Бизнес недвижимость
+  parents: cloud/mail, cloud/talk, cloud/sharing, cloud/full-text-search, cloud/ai
+  nextcloud:
+    entitlement: real_estate
+    quota: 15GB
+    team: Недвижимость
+    decks:
+      - name: Недвижимость
+- name: Недвижимость/Геодезист
+  idea: Геодезист
+  parents: Недвижимость
+  nextcloud:
+    entitlement: real_estate-geo
+    team: Недвижимость - Геодезия
+- name: Недвижимость/VPN
+  idea: real_estate overlay, no Geo PC apps
+  parents: netbird
+  netbird:
+    group: real-estate-vpn
+    network: real_estate
+- name: Недвижимость/Гео-ПК
+  idea: VPN к ПК для Геодезии
+  parents: Недвижимость/VPN, Недвижимость/Геодезист
+  nextcloud:
+    entitlement: real_estate-geo_pc
+  netbird:
+    group: real-estate-geo-pcs
+    network: real_estate
+- name: Недвижимость/Юрист
+  idea: Юрист
+  parents: Недвижимость
+  nextcloud:
+    entitlement: real_estate-lawyer
+    quota: 50GB
+    team: Недвижимость - Юридическое

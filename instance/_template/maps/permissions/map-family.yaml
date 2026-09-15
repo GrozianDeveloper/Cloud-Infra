@@ -1,0 +1,31 @@
+# family
+- name: name
+  idea: family
+  parents: name/Рецепты, name/Инвентарь, gramps, cloud/giphy, cloud/youtube, cloud/mail, cloud/talk, cloud/sharing, cloud/full-text-search
+  nextcloud:
+    entitlement:
+    quota: 50GB
+- name: name/Родители/Дом
+  idea: Home app
+  nextcloud:
+    entitlement: home
+  notes: Authentik Home Group Binding
+- name: name/Рецепты
+  idea: family recipes
+  parents: tandoor-recipes
+- name: name/Инвентарь
+  idea: home inventory
+  parents: homebox
+- name: name/Родители/Рецепты
+  idea: parents' recipes
+  parents: tandoor-recipes
+- name: name/Админ
+  idea: admin
+  nextcloud:
+    entitlement: admin
+- name: Minecraft/Create-Astral
+  idea: Create Astral server
+  parents: netbird
+  netbird:
+    group: minecraft-create_astral
+    network: minecraft-create_astral

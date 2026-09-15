@@ -1,0 +1,67 @@
+# church / infra — NetBird ACL leaves (apps separate from vpn-only)
+- name: cloud-infra/vpn
+  idea: cloud-infra overlay, no apps
+  parents: netbird
+  netbird:
+    group: cloud-infra-vpn
+    network: cloud-infra
+- name: cloud-infra/proxmox/ui
+  idea: Proxmox UI :8006
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-proxmox-ui
+    network: cloud-infra
+- name: cloud-infra/proxmox/ssh
+  idea: Proxmox SSH :22
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-proxmox-ssh
+    network: cloud-infra
+- name: cloud-infra/proxmox
+  idea: Proxmox UI + SSH
+  parents: cloud-infra/proxmox/ui, cloud-infra/proxmox/ssh
+- name: cloud-infra/truenas/ui
+  idea: TrueNAS UI :8443
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-truenas-ui
+    network: cloud-infra
+- name: cloud-infra/truenas/ssh
+  idea: TrueNAS SSH :22
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-truenas-ssh
+    network: cloud-infra
+- name: cloud-infra/truenas
+  idea: TrueNAS UI + SSH
+  parents: cloud-infra/truenas/ui, cloud-infra/truenas/ssh
+- name: cloud-infra/nextcloud-master/ui
+  idea: Nextcloud AIO master :8081
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-nextcloud-master-ui
+    network: cloud-infra
+- name: cloud-infra/dockge/ui
+  idea: Dockge UI :31014
+  parents: cloud-infra/vpn
+  netbird:
+    group: cloud-infra-dockge-ui
+    network: cloud-infra
+- name: local-infra/vpn
+  idea: local-infra overlay, no apps
+  parents: netbird
+  netbird:
+    group: local-infra-vpn
+    network: local-infra
+- name: local-infra/lan
+  idea: Church LAN by IP (cameras)
+  parents: local-infra/vpn
+  netbird:
+    group: local-infra-lan
+    network: local-infra
+- name: local-infra/presenters/static/ui
+  idea: Presenter Moonlight
+  parents: local-infra/vpn
+  netbird:
+    group: local-infra-presenters-static-ui
+    network: local-infra

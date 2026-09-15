@@ -1,0 +1,25 @@
+# One-shot: curl HA from the `proxy` network (same as Caddy).
+name: caddy-probe
+
+services:
+  probe:
+    image: docker:27-cli
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      [
+        "run",
+        "--rm",
+        "--network",
+        "proxy",
+        "curlimages/curl:8.16.0",
+        "-sS",
+        "-D",
+        "-",
+        "-o",
+        "/dev/null",
+        "--connect-timeout",
+        "4",
+        "http://192.168.0.226:80/",
+      ]

@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "gitea": {
+      "command": "bash",
+      "args": [".cursor/mcp/gitea.sh"]
+    },
+    "n8n": {
+      "type": "streamable-http",
+      "url": "https://auto.internal-church.gleeze.com/mcp-server/http"
+    },
+    "nextcloud": {
+      "type": "streamable-http",
+      "url": "http://192.168.0.35:31800/mcp"
+    },
+    "pve": {
+      "command": "bash",
+      "args": [".cursor/mcp/pve.sh"]
+    },
+    "home": {
+      "command": "bash",
+      "args": [".cursor/mcp/home.sh"]
+    },
+    "postiz": {
+      "command": "bash",
+      "args": [".cursor/mcp/postiz.sh"]
+    }
+  }
+}

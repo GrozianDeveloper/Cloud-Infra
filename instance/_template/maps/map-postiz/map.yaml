@@ -1,0 +1,19 @@
+# Postiz workspaces. Apply never deletes.
+# Login gate: Authentik app `postiz` (group postiz). Membership sync: later.
+secrets:
+  file: instance/postiz/.env
+orgs:
+  - name: Бахчисарайская Церковь
+    slug: church
+    from_authentik: Церковь/Медиа-Посты, Церковь/Медиа-Лидер
+    secrets:
+      api_key: POSTIZ_CHURCH_API_KEY
+    groups:
+      - name: Все Аккаунты
+  - name: Bless Time
+    slug: blesstime
+    from_authentik: Bless Time/Медиа-Посты
+    secrets:
+      api_key: POSTIZ_BLESSTIME_API_KEY
+    groups:
+      - name: Все Аккаунты

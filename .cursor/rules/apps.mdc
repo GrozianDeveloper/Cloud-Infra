@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+# When working on an app — read both layers
+
+1. `{app}/README.md` + `{app}/docs/` (reusable)
+2. `instance/{app}/Readme.md` (this infra instance)
+3. Secrets keys only: `instance/{app}/.env` / `.env.oidc`
+4. Domains: `instance/caddy/.env`. SMTP: `instance/email/.env`
+
+| Apps | Skills, docs, rules |
+|---|---|
+| Dockge | `.cursor/skills/agentskillexchange-skills-dockge-docker-compose-stack-manager/SKILL.md` (start/status/get/down). List/update: `truenas-scale/scripts/dockge-*.mjs` |
+| n8n | `.agents/skills/using-n8n-skills-official` |
+| TrueNAS,n8n,NocoDB,Dockge | `.cursor/skills/truenas-scale/SKILL.md` & `.cursor/mcp.json` · `instance/truenas/Readme.md` |
+| Authentik | `.cursor/skills/authentik/SKILL.md` (always; run `scripts/`, never ad-hoc API) · `instance/authentik/Readme.md` |
+| WordPress | `.agents/skills/wordpress-pro/SKILL.md`, `.agents/skills/wp-plugin-directory-guidelines/SKILL.md` |
+| FileFlows | `.agents/skills/fileflow-pathologize` |
+| find-skills | Discover/install skills from [skills.sh](https://skills.sh/). Search: `npx skills find [query]`. Add: `npx skills add owner/repo --skill name -y` (omit `-g` = this repo) |
+| Proxmox | `proxmox/MCP.md` · `instance/proxmox/Readme.md` |
+
+• Preffer not to create temporary docker containers, when working on Dockge stacks
+but if you did it (or script does this) - remove temp containers when you done
+For example: applying Nextcloud mail configuration; after configuration applied - remove this temporary docker container
+(if couldnt, dont nuke; just tell the user)
+
+# MCP List
+
+| MCP | when workin on Application / Scope | Notes | URL to Source |
+|---|----|---|---|
+| gitea | Gitea | `gitea/MCP.md` | https://gitea.com/gitea/gitea-mcp |
+| n8n | n8n | `n8n/MCP.md` | https://docs.n8n.io/connect/connect-to-n8n-mcp-server |
+| nextcloud | Nextcloud | `nextcloud-mcp/MCP.md` | https://github.com/cbcoutinho/nextcloud-mcp-server |
+| pve | Proxmox VE | `proxmox/MCP.md` | https://github.com/Samik081/mcp-pve |
+
+## When adding new MCP server
+
+All MCP servers must be in `.cursor/mcp.json` (project-level). Stack + docs under `{app}/`. Instance creds under `instance/{app}/`.

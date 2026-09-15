@@ -1,0 +1,25 @@
+# Dump SSO debug from recipes container (no secrets).
+name: tandoor-sso-debug
+
+services:
+  dbg:
+    image: docker:27-cli
+    container_name: tandoor-sso-debug
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/tandoor-sso-debug:/out
+      - ./inspect_sso.py:/data/inspect_sso.py:ro
+    command:
+      - sh
+      - -c
+      - |
+        c=$$(docker ps --filter name=ix-tandoor-recipes --format '{{.Names}}' | grep recipes | grep -v postgres | grep -v permission | grep -v upgrade | head -n1)
+        {
+          echo CONTAINER:$$c
+          echo '===== logs ====='
+          docker logs --tail 400 $$c 2>&1 | grep -Ei 'social|allauth|openid|auth_error|ERROR|Traceback|invalid_client|redirect_uri|SSLError|userinfo|access token|OIDC|certificate|Social Network' | tail -n 180
+          echo '===== site ====='
+          docker cp /data/inspect_sso.py $$c:/tmp/inspect_sso.py
+          docker exec -w /opt/recipes $$c /opt/recipes/venv/bin/python manage.py shell -c "exec(open('/tmp/inspect_sso.py').read())"
+        } > /out/out.txt 2>&1

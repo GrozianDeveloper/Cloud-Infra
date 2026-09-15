@@ -1,0 +1,10 @@
+name: nc-aio-start
+
+services:
+  nc-aio-start:
+    image: docker:27-cli
+    container_name: nc-aio-start
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["start", "nextcloud-aio-nextcloud"]

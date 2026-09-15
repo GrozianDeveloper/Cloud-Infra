@@ -1,0 +1,16 @@
+name: nc-aio-extstorage
+
+services:
+  nc-aio-extstorage:
+    image: docker:27-cli
+    container_name: nc-aio-extstorage
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/master-nextcloud-aio:/stack:ro
+      - /mnt/apps/dockge/nc-aio-extstorage:/out
+    working_dir: /stack
+    command: ["sh", "/stack/scripts/apply-external-storage.sh"]
+    environment:
+      OUT_DIR: /out
+      STACK_DIR: /stack

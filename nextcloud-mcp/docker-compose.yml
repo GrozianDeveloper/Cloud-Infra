@@ -1,0 +1,51 @@
+# Nextcloud MCP (Dockge). LAN only — no Caddy.
+#   Stack dir: apps/dockge/nextcloud-mcp/  (compose.yaml + .env)
+#   Local: docker compose -f nextcloud-mcp/docker-compose.yml \
+#     --env-file instance/nextcloud-mcp/.env up -d
+#
+# Single-user BasicAuth. Endpoint has no client auth — do not publish WAN.
+name: nextcloud-mcp
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+x-logging: &json-log-rotation
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+services:
+  nextcloud-mcp:
+    image: ghcr.io/cbcoutinho/nextcloud-mcp-server:latest
+    container_name: nextcloud-mcp
+    <<: [*default-restart, *json-log-rotation]
+    mem_limit: ${MCP_MEM_LIMIT:-1g}
+    ports:
+      - "${MCP_BIND}:${MCP_PORT}:8000"
+    environment:
+      NEXTCLOUD_HOST: "${NEXTCLOUD_HOST}"
+      NEXTCLOUD_USERNAME: "${NEXTCLOUD_MCP_LOGIN}"
+      NEXTCLOUD_PASSWORD: "${NEXTCLOUD_MCP_PASSWORD}"
+      MCP_DEPLOYMENT_MODE: single_user_basic
+      TOKEN_STORAGE_DB: /app/data/tokens.db
+    extra_hosts:
+      - "${NEXTCLOUD_HOSTNAME}:host-gateway"
+    volumes:
+      - nextcloud_mcp_data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fSs", "http://127.0.0.1:8000/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  nextcloud_mcp_data:
+    name: nextcloud_mcp_data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MCP_DATA_DIR}

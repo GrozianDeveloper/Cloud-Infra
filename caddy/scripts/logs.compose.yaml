@@ -1,0 +1,11 @@
+# Dump caddy logs to the stack dir (readable via tn filesystem)
+name: caddy-logs
+
+services:
+  logs:
+    image: docker:27-cli
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/caddy-logs:/out
+    command: ["sh", "-c", "docker logs --tail 100 caddy > /out/caddy.stderr.log 2>&1"]

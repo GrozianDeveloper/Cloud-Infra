@@ -1,0 +1,19 @@
+# church / guest
+- name: Прихожанин
+  idea: Ходящий в церковь, не член
+  parents: Информация о Церкови, cloud/talk
+  nextcloud:
+    entitlement: parishioner
+    organization: Бахчисарайская Церковь
+- name: Гость
+  idea: Временно из другой церкви
+  parents: cloud, cloud/talk
+  nextcloud:
+    entitlement: guest
+    organization: Бахчисарайская Церковь
+- name: Гость/Учитель
+  idea: Временный учитель
+  parents: Гость, Учитель, teaching-instruments
+  nextcloud:
+    entitlement: guest-teacher
+    organization: Бахчисарайская Церковь

@@ -1,0 +1,145 @@
+# church / teams
+- name: Информация о Церкови
+  idea: Внешняя информация о церкви
+  parents: cloud
+  nextcloud:
+    entitlement: church-info
+    organization: Бахчисарайская Церковь
+    collectives:
+      - name: О Церкви
+      - name: Активности Церкви
+    external_sites:
+      - Сайт
+      - Site
+- name: Церковь
+  idea: Член церкви
+  parents: Информация о Церкови, cloud/full-text-search, cloud/giphy, cloud/youtube, cloud/talk, cloud/sharing
+  nextcloud:
+    entitlement: church
+    quota: 45GB
+    organization: Бахчисарайская Церковь
+    team: Церковь
+- name: Церковь/Учитель
+  idea: Церковный учитель
+  parents: Церковь, Учитель, teaching-instruments
+  nextcloud:
+    entitlement: church-teacher
+    organization: Бахчисарайская Церковь
+    team: Церковь - Учитель
+    decks:
+      - name: Проповеди
+        permissions: edit, share
+- name: Церковь/Лидер
+  idea: Лидер служения
+  parents: Церковь, Оператор, cloud/desktop-workspace, cloud/mail, cloud/ai
+  nextcloud:
+    entitlement: church-lead
+    quota: 50GB
+    organization: Бахчисарайская Церковь
+    team: Церковь - Лидеры
+    collectives:
+      - name: Церковь
+        role: manager
+      - name: Активности Церкви
+        role: admin
+    decks:
+      - name: Планы Покупок
+      - name: Пресвитерское Общение
+- name: Церковь/Пресвитер
+  idea: Менеджер служений
+  parents: Церковь/Лидер, cloud/announcements
+  nextcloud:
+    entitlement: presbyter
+    organization: Бахчисарайская Церковь
+    team: Пресвитерский Совет
+    collectives:
+      - name: Церковь
+        role: manager
+      - name: Церковь - Лидеры
+        role: admin
+      - name: О Церкви
+        role: admin
+      - name: Учительство в церкви
+        role: admin
+    decks:
+      - name: Планы Покупок
+        permissions: edit, manage, share
+      - name: Пресвитерское Общение
+        permissions: edit, manage, share
+    talk:
+      - name: Пресвитерский Совет
+- name: Учитель
+  idea: Общие учительские доступы
+  parents: teaching-instruments/library/read, cloud/presentation, cloud/talk, freeshow
+  nextcloud:
+    entitlement: teacher
+    organization: Бахчисарайская Церковь
+    team: Учительство в церкви
+- name: Церковь/Медиа
+  idea: Медиа команда церкви
+  parents: cloud/full-text-search, cloud/giphy, cloud/youtube, cloud/talk, postiz, fileflows, handbrake, jdownloader, nocodb
+  nextcloud:
+    entitlement: church-media
+    quota: 50GB
+    organization: Бахчисарайская Церковь
+    team: Медиа Команда
+    decks:
+      - name: Медиа: Задачи
+      - name: Медиа: Идеи
+    folders:
+      - name: Медиа
+    external_storage:
+      - name: Медиа в Работе
+- name: Церковь/Медиа-Посты
+  idea: Все социальные аккаунты церкви в Postiz и WordPress
+  parents: Церковь/Медиа, postiz, wordpress/admin_panel/author
+  nextcloud:
+    entitlement: church-media_posts
+    organization: Бахчисарайская Церковь
+  notes: Postiz workspace — see instance/maps/map-postiz (org=Бахчисарайская Церковь, group=Все Аккаунты)
+- name: Церковь/Медиа-Лидер,
+  idea: Лидер Медиа команды
+  parents: Церковь/Медиа-Посты, wordpress/admin_panel/editor
+  nextcloud:
+    entitlement: church-media-lead
+    organization: Бахчисарайская Церковь
+    team: Медиа Команда - Лидеры
+    collectives:
+      - name: Медиа Команда
+        role: admin
+- name: Воскресное
+  idea: Воскресная команда
+  parents: cloud/talk, cloud/giphy, cloud/youtube
+  nextcloud:
+    entitlement: sunday
+    organization: Бахчисарайская Церковь
+    talk:
+      - name: Воскресное Служение
+        via: group
+- name: Оператор
+  idea: Оператор в Доме Молитвы
+  parents: home, cloud
+  nextcloud:
+    entitlement: operator
+    organization: Бахчисарайская Церковь
+    team: Оператор
+    external_apps:
+      - Scene
+- name: Музыка
+  idea: Музыкальная команда
+  parents: cloud/presentation, cloud/full-text-search, cloud/giphy, cloud/youtube, cloud/talk
+  nextcloud:
+    entitlement: music
+    quota: 15GB
+    organization: Бахчисарайская Церковь
+    team: Музыканты - Команда
+- name: Музыка/Лидер
+  idea: Лидер Музыкальной команды
+  parents: Музыка, Церковь/Лидер
+  nextcloud:
+    entitlement: music-lead
+    organization: Бахчисарайская Церковь
+    team: Музыканты - Команда
+    collectives:
+      - name: Музыканты - Команда
+        role: admin

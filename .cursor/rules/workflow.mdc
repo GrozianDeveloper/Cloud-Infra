@@ -1,0 +1,43 @@
+---
+alwaysApply: true
+---
+
+Use HostPath, not IxVolumes
+
+# Proccess of implementing
+
+## Principles
+
+• Always ask clarifing before implemetation
+When asking questions: suggested answer build on apps Readme.md; tell what will happen - results
+• User must know changes & their effects
+• Always write documentation when: 
+- Changing what was already documented
+- Adding new / removing behavior, functionality...
+- Working on app, automation...
+
+### Documentation Requirnments:
+- Keep docs laconic - without buzz words
+- Always document all important details, main ideas & small implementation specific corners
+- If find any differences or not documented things (on truenas, apps...) - document it
+- Dont write values in documentation, which stored in `instance/{app}/.env`
+
+## Step 0: Battle user's ideas & goals - suggest better alternatives - research better methods
+
+1. Ask questions, to make sure you 100% understand user's goals
+2. Research what will happen
+Depending on result of research:
+• if this ideas & goals are good ideas → Step 1
+• if you thinking its not, tell to a user: why (what can & will happen as result if implement this idea), research better alternatives 
+
+## Step 1: Documentation creation
+
+Goal: Create documentation when 100% clear what user wants & how to implement it
+
+1. Ask questions, to make sure you 100% understand user's goals & how to implement them
+2. Create documentation
+3. Stop, so user could read documentation
+
+## Step 2: Implementation
+
+Goal: Implement only what according to plan; if something not according to plan: research, analyse, tell user analys & suggest what to do

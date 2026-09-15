@@ -1,0 +1,25 @@
+name: nc-aio-verify
+
+services:
+  nc-aio-verify:
+    image: docker:27-cli
+    container_name: nc-aio-verify
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/nc-aio-optimizations:/out
+    command:
+      - sh
+      - -c
+      - |
+        i=0
+        while [ $$i -lt 60 ]; do
+          docker exec -u 33 nextcloud-aio-nextcloud php occ status >/dev/null 2>&1 && break
+          i=$$((i + 1))
+          sleep 4
+        done
+        {
+          echo av_scan_first_bytes=$$(docker exec -u 33 nextcloud-aio-nextcloud php occ config:app:get files_antivirus av_scan_first_bytes)
+          echo av_max_file_size=$$(docker exec -u 33 nextcloud-aio-nextcloud php occ config:app:get files_antivirus av_max_file_size)
+          echo av_background_scan=$$(docker exec -u 33 nextcloud-aio-nextcloud php occ config:app:get files_antivirus av_background_scan)
+        } > /out/verify.txt

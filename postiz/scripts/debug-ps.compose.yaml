@@ -1,0 +1,30 @@
+# One-shot: write postiz docker ps/logs to /out/out.txt
+name: postiz-debug
+
+services:
+  d:
+    image: docker:27-cli
+    container_name: postiz-debug
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/postiz:/stack:ro
+      - /mnt/apps/dockge/postiz-debug:/out
+    working_dir: /stack
+    command:
+      - sh
+      - -c
+      - |
+        {
+          echo '---ls---'
+          ls -la /stack
+          echo '---config---'
+          docker compose -p postiz config >/dev/null
+          echo config_exit:$?
+          echo '---up---'
+          docker compose -p postiz up -d
+          echo up_exit:$?
+          echo '---ps---'
+          docker compose -p postiz ps -a
+          docker ps -a --filter name=postiz --filter name=temporal
+        } > /out/out.txt 2>&1

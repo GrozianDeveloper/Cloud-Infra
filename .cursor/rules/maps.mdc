@@ -1,0 +1,40 @@
+---
+description: Working on maps. Permissions, Authentik groups/OIDC apps, Nextcloud ACL, NetBird access maps
+---
+
+# Maps
+
+• **Source of Truth** - always represents actual idea
+• [This instance maps index](instance/maps/index.md)
+• Each map: `instance/maps/{name}/` — YAML, scripts, `Readme.md` (how to read / apply)
+• Maps store **secret's keys** , not values. Secrets: `instance/{app}/.env` (OIDC: `.env.oidc`). Domains: `instance/caddy/.env`
+• Do not curl, use apply, dump... scripts & app's specfic scripts
+
+# Scripts
+
+• Scripts **NEVER DELETE DATA**: only create/update
+Do not add `--delete` to map scripts - all deletion manualy after "Aprove Deletion Workflow"
+• Scripts **indepetent**: any time scripts called produces same result as described in a map
+• Keep scripts in map's folder (right to the map)
+
+# AI
+
+• AI can delete only after aprove granted by a user
+
+## Aprove Deletion Workflow
+
+0. Read related applications actual data (to check is there any other data different from application's map)
+1. Create laconic `todo/deletion-list.md` - list of all permissions, groups and other data from the maps
+Separate Differences in first section (if found in `step 0`)
+
+2. **Explicitly** asks the user to delete data - wait for user's aprove for deletion
+Present 2 questions: 1) delete found differences (only if found any)? 2) aprove deletion of the `todo/deletion-list.md`
+
+3. Implement what user answers - manualy, be carefull **dont broke anything**
+User can will specify exactly what do to; he can ask to sync found differences (or only part of them)
+
+### Update Map Workflow
+
+0. Read related applications actual data (to check is there any other data different from application's map)
+1. Edit the YAML (right file).
+YAML doesnt store secrets; it points to `instance/{app}/.env` values, by property names.

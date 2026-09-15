@@ -1,0 +1,250 @@
+# Postiz (Dockge). Caddy on `proxy` → postiz:5000. No host publish.
+#   Stack dir: apps/dockge/postiz/  (compose.yaml + dynamicconfig/ + .env)
+#   Local: docker compose -f postiz/docker-compose.yml --env-file instance/postiz/.env up -d
+name: postiz
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+x-logging: &json-log-rotation
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+  postiz-network:
+    name: postiz-network
+  temporal-network:
+    name: temporal-network
+
+services:
+  postiz:
+    image: ghcr.io/gitroomhq/postiz-app:v2.23.0
+    container_name: postiz
+    <<: [*default-restart, *json-log-rotation]
+    env_file:
+      - .env
+    environment:
+      MAIN_URL: ${FRONTEND_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_INTERNAL_URL: http://localhost:3000
+      JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postiz-postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://postiz-redis:6379
+      TEMPORAL_ADDRESS: temporal:7233
+      IS_GENERAL: "true"
+      DISABLE_REGISTRATION: "false"
+      RUN_CRON: "true"
+      STORAGE_PROVIDER: local
+      UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_DIRECTORY: /uploads
+      NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY: ${NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY}
+      API_LIMIT: "90"
+      MCP_URL: ${MCP_URL}
+      POSTIZ_GENERIC_OAUTH: "true"
+      NEXT_PUBLIC_POSTIZ_OAUTH_DISPLAY_NAME: Authentik
+      NEXT_PUBLIC_POSTIZ_OAUTH_LOGO_URL: https://raw.githubusercontent.com/walkxcode/dashboard-icons/master/png/authentik.png
+      POSTIZ_OAUTH_URL: ${POSTIZ_OAUTH_URL}
+      POSTIZ_OAUTH_AUTH_URL: ${POSTIZ_OAUTH_AUTH_URL}
+      POSTIZ_OAUTH_TOKEN_URL: ${POSTIZ_OAUTH_TOKEN_URL}
+      POSTIZ_OAUTH_USERINFO_URL: ${POSTIZ_OAUTH_USERINFO_URL}
+      POSTIZ_OAUTH_CLIENT_ID: ${POSTIZ_OAUTH_CLIENT_ID}
+      POSTIZ_OAUTH_CLIENT_SECRET: ${POSTIZ_OAUTH_CLIENT_SECRET}
+      EMAIL_PROVIDER: nodemailer
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_SECURE: ${EMAIL_SECURE}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME}
+    volumes:
+      - postiz_config:/config
+      - postiz_uploads:/uploads
+    networks:
+      - proxy
+      - postiz-network
+      - temporal-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const r=require('http').get('http://localhost:5000/',res=>process.exit(res.statusCode<500?0:1));r.on('error',()=>process.exit(1));r.setTimeout(4000,()=>{r.destroy();process.exit(1)})",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+    depends_on:
+      postiz-postgres:
+        condition: service_healthy
+      postiz-redis:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+
+  postiz-postgres:
+    image: postgres:17-alpine
+    container_name: postiz-postgres
+    <<: [*default-restart, *json-log-rotation]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postiz_postgres:/var/lib/postgresql/data
+    networks:
+      - postiz-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  postiz-redis:
+    image: redis:7.2
+    container_name: postiz-redis
+    <<: [*default-restart, *json-log-rotation]
+    volumes:
+      - postiz_redis:/data
+    networks:
+      - postiz-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  temporal-elasticsearch:
+    image: elasticsearch:7.17.27
+    container_name: temporal-elasticsearch
+    <<: [*default-restart, *json-log-rotation]
+    environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m
+      - xpack.security.enabled=false
+    volumes:
+      - temporal_es:/usr/share/elasticsearch/data
+    networks:
+      - temporal-network
+    expose:
+      - "9200"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS \"http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s\" || exit 1",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  temporal-postgresql:
+    image: postgres:16
+    container_name: temporal-postgresql
+    <<: [*default-restart, *json-log-rotation]
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+    volumes:
+      - temporal_pg:/var/lib/postgresql/data
+    networks:
+      - temporal-network
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U temporal"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  temporal:
+    image: temporalio/auto-setup:1.28.1
+    container_name: temporal
+    <<: [*default-restart, *json-log-rotation]
+    depends_on:
+      temporal-postgresql:
+        condition: service_healthy
+      temporal-elasticsearch:
+        condition: service_healthy
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=temporal-postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=temporal-elasticsearch
+      - ES_VERSION=v7
+      - TEMPORAL_NAMESPACE=default
+    volumes:
+      - ./dynamicconfig:/etc/temporal/config/dynamicconfig
+    networks:
+      - temporal-network
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "temporal:7233"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  postiz_config:
+    name: postiz_config
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_CONFIG_DIR}
+  postiz_uploads:
+    name: postiz_uploads
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_UPLOADS_DIR}
+  postiz_postgres:
+    name: postiz_postgres
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_POSTGRES_DIR}
+  postiz_redis:
+    name: postiz_redis
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_REDIS_DIR}
+  temporal_pg:
+    name: postiz_temporal_pg
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_TEMPORAL_PG_DIR}
+  temporal_es:
+    name: postiz_temporal_es
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${POSTIZ_TEMPORAL_ES_DIR}

@@ -1,0 +1,23 @@
+# church / youth
+- name: Молодёж
+  idea: Общий доступ Молодёжи
+  parents: cloud/full-text-search, cloud/giphy, cloud/youtube, cloud/talk
+  nextcloud:
+    entitlement: youth
+    organization: Бахчисарайская Церковь
+    team: Молодёж Церкви
+    talk:
+      - name: Молодёж Церкви
+- name: Молодёж/Лидер
+  idea: Лидер Молодёжи
+  parents: Молодёж, Церковь/Лидер
+  nextcloud:
+    entitlement: youth-lead
+    organization: Бахчисарайская Церковь
+    team: Молодёж Церкви
+    collectives:
+      - name: Молодёж Церкви
+        role: manager
+    talk:
+      - name: Молодёж Церкви
+        role: moderator

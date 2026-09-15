@@ -1,0 +1,62 @@
+# apps / instruments
+- name: postiz
+  idea: Postiz app
+  nextcloud:
+    entitlement: postiz
+  notes: Authentik Postiz Group Binding. Workspaces: instance/maps/map-postiz
+- name: fileflows
+  idea: FileFlows app
+  nextcloud:
+    entitlement: fileflows
+    external_apps:
+      - FileFlows
+  notes: Authentik FileFlows Group Binding
+- name: handbrake
+  idea: HandBrake app
+  nextcloud:
+    entitlement: handbrake
+    external_apps:
+      - HandBrake
+  notes: Authentik HandBrake Group Binding
+- name: jdownloader
+  idea: JDownloader app
+  nextcloud:
+    entitlement: jdownloader
+    external_apps:
+      - JDownloader
+- name: tandoor-recipes
+  idea: Tandoor Recipes app
+  notes: Authentik Tandoor Recipes Group Binding
+- name: homebox
+  idea: HomeBox app
+  notes: Authentik HomeBox Group Binding
+- name: gramps
+  idea: Gramps Web app
+  notes: Authentik Gramps Web Group Binding
+- name: freeshow
+  idea: FreeShow app
+  nextcloud:
+    entitlement: freeshow
+  notes: Authentik FreeShow Group Binding
+- name: netbird
+  idea: NetBird app
+  nextcloud:
+    entitlement: netbird
+  notes: Authentik NetBird Group Binding
+- name: n8n
+  idea: n8n app
+  nextcloud:
+    entitlement: n8n
+    external_apps:
+      - n8n
+  notes: Authentik n8n Group Binding
+- name: gitea
+  idea: Gitea app
+  nextcloud:
+    entitlement: gitea
+    external_apps:
+      - Gitea
+  notes: Authentik Gitea Group Binding
+- name: wordpress/admin_panel
+  idea: WordPress admin (OIDC)
+  notes: Authentik WordPress Group Binding

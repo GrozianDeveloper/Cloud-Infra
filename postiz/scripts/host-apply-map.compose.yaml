@@ -1,0 +1,24 @@
+# One-shot: apply map SQL inside postiz-postgres.
+name: postiz-apply-map
+
+services:
+  apply:
+    image: docker:27-cli
+    container_name: postiz-apply-map
+    restart: "no"
+    env_file:
+      - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./apply.sql:/sql/apply.sql:ro
+    command:
+      - sh
+      - -c
+      - |
+        i=0
+        until docker exec postiz-postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -c 'SELECT 1 FROM "Organization" LIMIT 1' >/dev/null 2>&1; do
+          i=$$((i+1))
+          [ "$$i" -gt 60 ] && echo timeout_waiting_Organization && exit 1
+          sleep 5
+        done
+        docker exec -i postiz-postgres psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -v ON_ERROR_STOP=1 < /sql/apply.sql

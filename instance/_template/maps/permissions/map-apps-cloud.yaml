@@ -1,0 +1,63 @@
+# apps / cloud
+- name: cloud
+  idea: Nextcloud app
+  nextcloud:
+    entitlement: everybody
+    quota: 5GB
+    team: Как работать с технологиями
+  notes: Authentik Nextcloud Group Binding
+- name: cloud/presentation
+  idea: Root folder Презентация
+  parents: cloud
+  nextcloud:
+    entitlement: presentation
+    quota: 15GB
+    folders:
+      - name: Презентация
+        via: group
+- name: cloud/announcements
+  idea: Nextcloud announcements
+  parents: cloud
+  nextcloud:
+    entitlement: announcements
+- name: cloud/desktop-workspace
+  idea: Desktop Workspace app
+  parents: cloud
+  nextcloud:
+    entitlement: desktop_workspace
+- name: cloud/full-text-search
+  idea: Full Text Search app
+  parents: cloud
+  nextcloud:
+    entitlement: full_text_search
+- name: cloud/giphy
+  idea: Giphy app
+  parents: cloud
+  nextcloud:
+    entitlement: giphy
+- name: cloud/youtube
+  idea: Youtube app
+  parents: cloud
+  nextcloud:
+    entitlement: youtube
+- name: cloud/mail
+  idea: Mail app
+  parents: cloud
+  nextcloud:
+    entitlement: mail
+- name: cloud/ai
+  idea: AI Assistant
+  parents: cloud
+  nextcloud:
+    entitlement: ai
+- name: cloud/talk
+  idea: Talk app
+  parents: cloud
+  nextcloud:
+    entitlement: talk
+    quota: 15GB
+- name: cloud/sharing
+  idea: File sharing
+  parents: cloud
+  nextcloud:
+    entitlement: sharing

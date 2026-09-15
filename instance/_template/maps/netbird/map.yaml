@@ -1,0 +1,313 @@
+# Authored map. Do not --dump over this (use --force-dump). Apply never deletes.
+# Peers / routers: not applied until a LAN peer exists per network.
+
+groups:
+  # existing
+  - name: home-network-infra
+    from_authentik: home/network/infra
+  - name: minecraft-create_astral
+    from_authentik: Minecraft/Create-Astral
+
+  # cloud-infra — user groups
+  - name: cloud-infra-vpn
+    from_authentik: cloud-infra/vpn
+  - name: cloud-infra-proxmox-ui
+    from_authentik: cloud-infra/proxmox/ui
+  - name: cloud-infra-proxmox-ssh
+    from_authentik: cloud-infra/proxmox/ssh
+  - name: cloud-infra-truenas-ui
+    from_authentik: cloud-infra/truenas/ui
+  - name: cloud-infra-truenas-ssh
+    from_authentik: cloud-infra/truenas/ssh
+  - name: cloud-infra-nextcloud-master-ui
+    from_authentik: cloud-infra/nextcloud-master/ui
+  - name: cloud-infra-dockge-ui
+    from_authentik: cloud-infra/dockge/ui
+  - name: cloud-infra-devops
+    from_authentik: Техно/Cloud-Infra/Devops
+
+  # cloud-infra — resource + router groups (not Authentik)
+  - name: res-cloud-infra-proxmox
+  - name: res-cloud-infra-truenas
+  - name: res-cloud-infra-dockge
+  - name: res-cloud-infra-nextcloud-master
+  - name: routers-cloud-infra
+
+  # real_estate
+  - name: real-estate-vpn
+    from_authentik: Недвижимость/VPN
+  - name: real-estate-geo-pcs
+    from_authentik: Недвижимость/Гео-ПК
+  - name: res-real-estate-geo-pcs
+  - name: routers-real-estate
+
+  # local-infra
+  - name: local-infra-vpn
+    from_authentik: local-infra/vpn
+  - name: local-infra-lan
+    from_authentik: local-infra/lan
+  - name: local-infra-presenters-static-ui
+    from_authentik: local-infra/presenters/static/ui
+  - name: local-infra-devops
+    from_authentik: Техно/Local-Infra/Devops
+  - name: res-local-infra-lan
+  - name: res-local-infra-presenter-static
+  - name: routers-local-infra
+
+networks:
+  - name: home-network-infra
+    description: Дом Молитвы - infra LAN
+  - name: minecraft-create_astral
+    description: Create Astral modpack server
+  - name: cloud-infra
+    description: Proxmox, TrueNAS, Dockge, Nextcloud Master (pointwise)
+  - name: real_estate
+    description: Geo PCs (Moonlight)
+  - name: local-infra
+    description: Church LAN + Presenter Moonlight
+
+resources:
+  - name: Proxmox
+    network: cloud-infra
+    address: proxmox.internal-domain.gleeze.com
+    lan_ip: 192.168.0.228
+    groups:
+      - res-cloud-infra-proxmox
+    enabled: true
+  - name: TrueNAS
+    network: cloud-infra
+    address: truenas.internal-domain.gleeze.com
+    lan_ip: 192.168.0.35
+    groups:
+      - res-cloud-infra-truenas
+    enabled: true
+  - name: Dockge
+    network: cloud-infra
+    address: dockge.internal-domain.gleeze.com
+    lan_ip: 192.168.0.35
+    groups:
+      - res-cloud-infra-dockge
+    enabled: true
+  - name: Nextcloud Master
+    network: cloud-infra
+    address: nextcloud-master.internal-domain.gleeze.com
+    lan_ip: 192.168.0.35
+    groups:
+      - res-cloud-infra-nextcloud-master
+    enabled: true
+  - name: GEO_PC 1 - Real Estate
+    network: real_estate
+    address: geo-pc-1.internal-domain.gleeze.com
+    lan_ip: 192.168.0.13
+    mac: "00:e0:4f:17:7c:a6"
+    uuid: "F66B1AA1-C6D7-BF0D-4108-A83C7491C808"
+    groups:
+      - res-real-estate-geo-pcs
+    enabled: true
+  - name: Local Infra Lan
+    network: local-infra
+    address: 192.168.0.0/24
+    groups:
+      - res-local-infra-lan
+    enabled: true
+  - name: Presenter Static UI
+    network: local-infra
+    address: presenter-static.internal-church.gleeze.com
+    lan_ip: TBD
+    groups:
+      - res-local-infra-presenter-static
+    enabled: true
+
+policies:
+  - name: Proxmox UI
+    enabled: true
+    rules:
+      - name: Proxmox UI
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "8006"
+        sources:
+          - cloud-infra-proxmox-ui
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-proxmox
+  - name: Proxmox SSH
+    enabled: true
+    rules:
+      - name: Proxmox SSH
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "22"
+        sources:
+          - cloud-infra-proxmox-ssh
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-proxmox
+  - name: TrueNAS UI
+    enabled: true
+    rules:
+      - name: TrueNAS UI
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "8443"
+        sources:
+          - cloud-infra-truenas-ui
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-truenas
+  - name: TrueNAS SSH
+    enabled: true
+    rules:
+      - name: TrueNAS SSH
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "22"
+        sources:
+          - cloud-infra-truenas-ssh
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-truenas
+  - name: Dockge UI
+    enabled: true
+    rules:
+      - name: Dockge UI
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "31014"
+        sources:
+          - cloud-infra-dockge-ui
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-dockge
+  - name: Nextcloud Master UI
+    enabled: true
+    rules:
+      - name: Nextcloud Master UI
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "8081"
+        sources:
+          - cloud-infra-nextcloud-master-ui
+          - cloud-infra-devops
+        destinations:
+          - res-cloud-infra-nextcloud-master
+  - name: GEO_PC 1 - UI - Real Estate
+    enabled: true
+    rules:
+      - name: GEO_PC 1 Moonlight TCP
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "47984"
+          - "47989"
+          - "48010"
+        sources:
+          - real-estate-geo-pcs
+        destinations:
+          - res-real-estate-geo-pcs
+      - name: GEO_PC 1 Moonlight UDP
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: udp
+        port_ranges:
+          - start: 47998
+            end: 48000
+          - start: 48010
+            end: 48010
+        sources:
+          - real-estate-geo-pcs
+        destinations:
+          - res-real-estate-geo-pcs
+  - name: Local Infra Lan
+    enabled: true
+    rules:
+      - name: Local Infra Lan
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: all
+        sources:
+          - local-infra-lan
+          - local-infra-devops
+        destinations:
+          - res-local-infra-lan
+  - name: Presenter Static UI
+    enabled: true
+    rules:
+      - name: Presenter Moonlight TCP
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: tcp
+        ports:
+          - "47984"
+          - "47989"
+          - "48010"
+        sources:
+          - local-infra-presenters-static-ui
+          - local-infra-devops
+        destinations:
+          - res-local-infra-presenter-static
+      - name: Presenter Moonlight UDP
+        enabled: true
+        action: accept
+        bidirectional: false
+        protocol: udp
+        port_ranges:
+          - start: 47998
+            end: 48000
+          - start: 48010
+            end: 48010
+        sources:
+          - local-infra-presenters-static-ui
+          - local-infra-devops
+        destinations:
+          - res-local-infra-presenter-static
+
+# Distinct LAN peer per router group. Do not share peers across networks.
+routers:
+  - network: cloud-infra
+    peer_groups:
+      - routers-cloud-infra
+    masquerade: true
+    metric: 9999
+    enabled: false
+  - network: real_estate
+    peer_groups:
+      - routers-real-estate
+    masquerade: true
+    metric: 9999
+    enabled: false
+  - network: local-infra
+    peer_groups:
+      - routers-local-infra
+    masquerade: true
+    metric: 9999
+    enabled: false
+
+routes: []
+nameservers: []
+dns_settings: {}
+settings: {}
+posture: []

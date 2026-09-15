@@ -1,0 +1,328 @@
+{
+	email {$ACME_EMAIL}
+	order crowdsec first
+	# HTTP/3: pin on every HTTPS listener. :80 stays h1 (ACME + redirect).
+	# Clients learn h3 from Alt-Svc on the first h2 response, then retry UDP/443.
+	servers {
+		protocols h1 h2 h3
+		trusted_proxies static private_ranges
+	}
+	servers :443 {
+		protocols h1 h2 h3
+		trusted_proxies static private_ranges
+	}
+	crowdsec {
+		api_url http://crowdsec:8080
+		api_key {$CROWDSEC_BOUNCER_KEY_CADDY}
+		ticker_interval 60s
+	}
+}
+
+# Shared security + HTTP/3 advertisement
+(secured) {
+	crowdsec
+	rate_limit {
+		zone per_ip {
+			key {remote_host}
+			events 5000
+			window 1m
+		}
+	}
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		Alt-Svc "h3=\":443\"; ma=2592000"
+	}
+}
+
+# Nextcloud / Netbird: no shared-IP rate_limit
+(cloud_secured) {
+	crowdsec
+	encode zstd gzip
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		Alt-Svc "h3=\":443\"; ma=2592000"
+	}
+}
+
+# NC: no encode (video/DAV already compressed; gzip burns CPU)
+(cloud_secured_nc) {
+	crowdsec
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+		Alt-Svc "h3=\":443\"; ma=2592000"
+	}
+}
+
+# Authentik FA — hop to the TrueNAS app via host-gateway (not the public AUTH_DOMAIN)
+(authentik_forward_auth) {
+	route {
+		reverse_proxy /outpost.goauthentik.io/* {$AUTHENTIK_UPSTREAM}
+		forward_auth {$AUTHENTIK_UPSTREAM} {
+			uri /outpost.goauthentik.io/auth/caddy
+			copy_headers X-Authentik-Username X-Authentik-Groups X-Authentik-Entitlements X-Authentik-Email X-Authentik-Name X-Authentik-Uid X-Authentik-Jwt X-Authentik-Meta-Jwks X-Authentik-Meta-Outpost X-Authentik-Meta-Provider X-Authentik-Meta-App X-Authentik-Meta-Version
+			trusted_proxies private_ranges
+		}
+	}
+}
+
+(access_log_file) {
+	log {
+		output file {args[0]} {
+			roll_size 1mb
+			roll_keep 1
+		}
+		format json
+	}
+}
+
+# --- Authentik ---
+{$AUTH_DOMAIN} {
+	import secured
+	reverse_proxy {$AUTHENTIK_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+	}
+	import access_log_file /var/log/caddy/auth-access.log
+}
+
+# --- Nextcloud AIO ---
+{$NEXTCLOUD_DOMAIN} {
+	import cloud_secured_nc
+	@nc_static path_regexp \.(js|mjs|css|woff2?|png|jpe?g|gif|svg|webp|ico|map)$
+	@nc_dav path /remote.php* /public.php* /index.php/dav* /dav*
+	log_skip @nc_static
+	log_skip @nc_dav
+	redir /.well-known/carddav /remote.php/dav/ 301
+	redir /.well-known/caldav /remote.php/dav/ 301
+	reverse_proxy {$NEXTCLOUD_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/cloud-aio-access.log
+}
+
+# --- n8n ---
+{$N8N_DOMAIN} {
+	import secured
+	reverse_proxy {$N8N_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 1800s
+			write_timeout 1800s
+		}
+	}
+	import access_log_file /var/log/caddy/n8n-access.log
+}
+
+# --- NocoDB (Authentik FA) ---
+{$NOCODB_DOMAIN} {
+	import secured
+	import authentik_forward_auth
+	reverse_proxy {$NOCODB_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 1800s
+			write_timeout 1800s
+		}
+	}
+	import access_log_file /var/log/caddy/nocodb-access.log
+}
+
+# --- WordPress ---
+{$WORDPRESS_DOMAIN} {
+	import secured
+	reverse_proxy {$WORDPRESS_UPSTREAM} {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		header_up X-Forwarded-For {remote_host}
+	}
+	import access_log_file /var/log/caddy/wordpress-access.log
+}
+
+# --- Gitea ---
+{$GIT_DOMAIN} {
+	import secured
+	reverse_proxy {$GIT_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/gitea-access.log
+}
+
+# --- Netbird (SPA + gRPC/api/relay) ---
+{$NETBIRD_DOMAIN} {
+	import cloud_secured
+	@grpc protocol grpc
+	handle @grpc {
+		reverse_proxy h2c://{$NETBIRD_MGMT_UPSTREAM} {
+			flush_interval -1
+		}
+	}
+	# Embedded Dex + HTTP API live on management (not the SPA)
+	handle /oauth2* {
+		reverse_proxy {$NETBIRD_MGMT_UPSTREAM} {
+			header_up Host {host}
+			flush_interval -1
+		}
+	}
+	handle /api/* {
+		reverse_proxy h2c://{$NETBIRD_MGMT_UPSTREAM} {
+			flush_interval -1
+		}
+	}
+	handle /relay* {
+		reverse_proxy h2c://{$NETBIRD_MGMT_UPSTREAM} {
+			flush_interval -1
+		}
+	}
+	handle {
+		reverse_proxy {$NETBIRD_UPSTREAM} {
+			header_up Host {host}
+			flush_interval -1
+		}
+	}
+	import access_log_file /var/log/caddy/netbird-access.log
+}
+
+# --- FileFlows (Authentik FA) ---
+{$FILEFLOWS_DOMAIN} {
+	import secured
+	import authentik_forward_auth
+	reverse_proxy {$FILEFLOWS_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/fileflows-access.log
+}
+
+# --- HandBrake (Authentik FA) ---
+{$HANDBRAKE_DOMAIN} {
+	import secured
+	import authentik_forward_auth
+	reverse_proxy {$HANDBRAKE_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/handbrake-access.log
+}
+
+# --- JDownloader (Authentik FA) ---
+{$JDOWNLOADER_DOMAIN} {
+	import secured
+	import authentik_forward_auth
+	reverse_proxy {$JDOWNLOADER_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 1800s
+			write_timeout 1800s
+		}
+	}
+	import access_log_file /var/log/caddy/jdownloader-access.log
+}
+
+# --- Postiz (OIDC inside Postiz, no FA) ---
+{$POSTIZ_DOMAIN} {
+	import secured
+	reverse_proxy {$POSTIZ_UPSTREAM} {
+		header_up Host {host}
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/postiz-access.log
+}
+
+# --- Tandoor Recipes (OIDC inside Tandoor, no FA) ---
+{$TANDOOR_RECIPES_DOMAIN} {
+	import secured
+	reverse_proxy {$TANDOOR_RECIPES_UPSTREAM} {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/tandoor-recipes-access.log
+}
+
+# --- HomeBox (OIDC inside HomeBox, no FA) ---
+{$HOMEBOX_DOMAIN} {
+	import secured
+	reverse_proxy {$HOMEBOX_UPSTREAM} {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/homebox-access.log
+}
+
+# --- Gramps Web (OIDC inside Gramps, no FA) ---
+{$GRAMPS_DOMAIN} {
+	import secured
+	reverse_proxy {$GRAMPS_UPSTREAM} {
+		header_up Host {host}
+		header_up X-Forwarded-Proto https
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/gramps-web-access.log
+}
+
+# --- Home (HA OS; OIDC inside HA, no FA) ---
+{$HOME_DOMAIN} {
+	import secured
+	reverse_proxy {$HOME_UPSTREAM} {
+		header_up Host {host}
+		header_up X-Forwarded-Host {host}
+		header_up X-Forwarded-Proto https
+		flush_interval -1
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+	}
+	import access_log_file /var/log/caddy/home-access.log
+}

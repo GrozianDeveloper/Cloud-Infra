@@ -1,0 +1,15 @@
+.agents/skills/
+
+# instance/
+
+# .env files
+# .env
+# .env.*
+# !.env.example
+instance/postiz/postiz-apply.sql
+
+# Gitea MCP binary (install: bash .cursor/mcp/install-gitea-mcp.sh)
+.cursor/mcp/bin/
+
+# AI first-install checkpoint (no secrets)
+instance/first-install-state.yaml

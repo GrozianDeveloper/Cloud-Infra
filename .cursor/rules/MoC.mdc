@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+
+• Read `Readme.md`: Main Ideas, installed apps
+• Per app, always read **both**:
+  - `{app}/README.md` + `{app}/docs/` — reusable - global docs (deploy, SSO, scripts)
+  - `instance/{app}/Readme.md` — this Instance's docs (eg ports, HostPath, Authentik slug...)
+  - Secrets: `instance/{app}/.env`, `instance/{app}/.env.oidc`
+• Shared secrets: `instance/caddy/.env` (domains/upstreams), `instance/email/.env` (SMTP), `instance/truenas/.env` (TrueNAS API)
+• Global (all instances): `docs/`, `workflows/`
+• Agent skills: custom in `.cursor/skills/`; `npx skills` installs in `.agents/skills/` (lock: `skills-lock.json`)
+
+# Documentation Creation
+
+• Instance-specific → `instance/{app}/` (this hardware, ports, datasets, live Authentik)
+• Reusable app docs → `{app}/docs/` (same on every instance)
+• Cross-app / legal / install guide → `docs/`
+
+# all scripts must be generic-reusable
+
+• `{app}/scripts` uses input and/or `instance/{app}/` data
+- so scripts work on different instances with different settings

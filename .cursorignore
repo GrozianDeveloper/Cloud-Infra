@@ -1,0 +1,3 @@
+# instance env (not in git)
+instance/**/.env
+instance/**/.env.*

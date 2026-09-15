@@ -1,0 +1,11 @@
+# One-shot: HUP the `caddy` container. Started by caddy/scripts/reload.sh
+name: caddy-hup
+
+services:
+  hup:
+    image: docker:27-cli
+    container_name: caddy-hup
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["kill", "-s", "HUP", "caddy"]

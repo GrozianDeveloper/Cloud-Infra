@@ -1,0 +1,68 @@
+# Nextcloud AIO behind Caddy (Dockge stack).
+#   Dockge: stack dir apps/dockge/master-nextcloud-aio/ with compose.yaml + .env
+#   Local: docker compose -f master-nextcloud-aio/docker-compose.yml \
+#     --env-file instance/master-nextcloud-aio/.env up -d
+#
+# Only official AIO env names go into the container (see environment:).
+# TALK_PORT + NEXTCLOUD_DATADIR are immutable after first boot.
+# Do not publish TALK_PORT here — nextcloud-aio-talk binds it.
+name: master-nextcloud-aio
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+x-logging: &json-log-rotation
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "2"
+
+networks:
+  nextcloud-aio:
+    name: nextcloud-aio
+    external: true
+
+apps:
+  nextcloud-aio-mastercontainer:
+    image: ghcr.io/nextcloud-releases/all-in-one:latest
+    container_name: nextcloud-aio-mastercontainer
+    init: true
+    <<: [*default-restart, *json-log-rotation]
+    mem_limit: ${MASTER_MEM_LIMIT:-1g}
+    ports:
+      - "${UI_BIND}:${UI_PORT}:8080"
+    environment:
+      APACHE_PORT: "${APACHE_PORT}"
+      APACHE_IP_BINDING: "${APACHE_IP_BINDING}"
+      APACHE_ADDITIONAL_NETWORK: "${APACHE_ADDITIONAL_NETWORK}"
+      SKIP_DOMAIN_VALIDATION: "${SKIP_DOMAIN_VALIDATION}"
+      NEXTCLOUD_DATADIR: "${NEXTCLOUD_DATADIR}"
+      NEXTCLOUD_MOUNT: "${NEXTCLOUD_MOUNT}"
+      TALK_PORT: "${TALK_PORT}"
+      NEXTCLOUD_STARTUP_APPS: "${NEXTCLOUD_STARTUP_APPS}"
+      NEXTCLOUD_UPLOAD_LIMIT: "${NEXTCLOUD_UPLOAD_LIMIT}"
+      NEXTCLOUD_MAX_TIME: "${NEXTCLOUD_MAX_TIME}"
+      NEXTCLOUD_MEMORY_LIMIT: "${NEXTCLOUD_MEMORY_LIMIT}"
+      FULLTEXTSEARCH_JAVA_OPTIONS: "${FULLTEXTSEARCH_JAVA_OPTIONS}"
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - nextcloud-aio
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${AIO_CONFIG_DIR}
+  nextcloud_aio_database_dump:
+    name: nextcloud_aio_database_dump
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${NEXTCLOUD_DATABASE_DUMP_DIR}

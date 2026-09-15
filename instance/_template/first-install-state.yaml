@@ -1,0 +1,10 @@
+# AI checkpoint only. No secrets. Gitignored as `instance/first-install-state.yaml`.
+
+step: "0"
+preset: ""
+new_instance: true
+docs_only: false
+proxmox: false
+done: []
+skipped: []
+apps: []

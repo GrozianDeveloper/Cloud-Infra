@@ -1,0 +1,12 @@
+# services
+- name: authentik Admins
+  idea: Authentik superusers
+  builtin: true
+- name: authentik Agent-Users
+  idea: Authentik service accounts
+  builtin: true
+- name: authentik Read-only
+  idea: Authentik read-only
+  builtin: true
+- name: netbird-svc
+  idea: Netbird IdP service group

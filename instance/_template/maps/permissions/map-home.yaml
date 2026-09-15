@@ -1,0 +1,29 @@
+# home
+- name: home
+  idea: Home Assistant app
+  notes: Authentik Home Group Binding
+- name: home/network/infra
+  idea: WiFI и VPN infra LAN
+  parents: netbird
+  netbird:
+    group: home-network-infra
+    network: home-network-infra
+- name: home/network/team
+  idea: WiFI Team LAN
+- name: home/network/parishioners
+  idea: WiFi Parishioners LAN
+- name: home/cctv
+  idea: CCTV Dashboard
+  parents: home
+  ha: cctv
+  nextcloud:
+    entitlement: cctv
+- name: home/operator
+  idea: Scene Dashboard
+  parents: home
+  ha: operator
+  nextcloud:
+    entitlement: operator
+    team: Оператор
+    external_apps:
+      - Scene

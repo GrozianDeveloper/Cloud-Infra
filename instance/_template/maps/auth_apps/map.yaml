@@ -1,0 +1,357 @@
+apps:
+  - name: Nextcloud
+    slug: nextcloud
+    description: Nextcloud AIO (user_oidc)
+    name_in_app: authentik
+    type: oauth2
+    launch: "https://{NEXTCLOUD_DOMAIN}"
+    bind_groups:
+      - cloud
+    provider:
+      name: nextcloud
+      client_type: confidential
+      consent: explicit
+      grant_types: authorization_code, refresh_token
+      scopes: openid, profile, email, entitlements, nextcloud, offline_access, groups
+      signing_key: authentik Self-signed Certificate
+      access_token_validity: minutes=15
+      refresh_token_validity: days=35
+      refresh_token_threshold: days=17
+      access_code_validity: minutes=1;seconds=30
+      logout_method: backchannel
+      logout_uri: "https://{NEXTCLOUD_DOMAIN}/apps/user_oidc/backchannel-logout/1"
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{NEXTCLOUD_DOMAIN}/apps/user_oidc/code"
+        - matching: strict
+          kind: authorization
+          url: "https://{NEXTCLOUD_DOMAIN}/index.php/apps/user_oidc/code"
+        - matching: strict
+          kind: logout
+          url: "https://{AUTH_DOMAIN}/if/user/"
+    secrets:
+      file: instance/master-nextcloud-aio/.env.oidc
+      client_id: NC_OIDC_CLIENT_ID
+      client_secret: NC_OIDC_CLIENT_SECRET
+      discovery: NC_OIDC_DISCOVERY
+      endsession: NC_OIDC_ENDSESSION
+      post_logout: NC_OIDC_POST_LOGOUT
+
+  - name: Home
+    slug: home
+    description: Church Home Assistant stub (not wired)
+    name_in_app: home
+    type: oauth2
+    launch: ""
+    bind_groups:
+      - home
+    provider:
+      name: home
+      client_type: confidential
+      consent: implicit
+      grant_types: authorization_code, refresh_token
+      scopes: openid, email, profile, groups, offline_access
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: https://localhost/auth/oidc/callback
+    secrets:
+      file: instance/home/.env.oidc
+      client_id: HOME_OIDC_CLIENT_ID
+      client_secret: HOME_OIDC_CLIENT_SECRET
+      discovery: HOME_OIDC_DISCOVERY
+
+  - name: WordPress
+    slug: wordpress
+    description: Public website OIDC
+    name_in_app: OpenID Connect Generic
+    type: oauth2
+    launch: "https://{WORDPRESS_DOMAIN}/wp-login.php"
+    bind_groups:
+      - wordpress/admin_panel
+    provider:
+      name: wordpress
+      client_type: confidential
+      consent: implicit
+      grant_types: authorization_code, refresh_token
+      scopes: openid, email, profile, offline_access, groups
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{WORDPRESS_DOMAIN}/wp-admin/admin-ajax.php?action=openid-connect-authorize"
+    secrets:
+      file: instance/wordpress/.env.oidc
+      client_id: WP_OIDC_CLIENT_ID
+      client_secret: WP_OIDC_CLIENT_SECRET
+      discovery: WP_OIDC_DISCOVERY
+
+  - name: Gitea
+    slug: gitea
+    description: Git / Actions
+    name_in_app: authentik
+    type: oauth2
+    launch: "https://{GIT_DOMAIN}"
+    bind_groups:
+      - gitea
+    entitlements:
+      - name: gituser
+        bind_groups:
+          - gitea
+    provider:
+      name: gitea
+      client_type: confidential
+      consent: implicit
+      grant_types: authorization_code, refresh_token
+      scopes: openid, email, profile, offline_access, entitlements, groups
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{GIT_DOMAIN}/user/oauth2/authentik/callback"
+    secrets:
+      file: instance/gitea/.env.oidc
+      client_id: GITEA_OIDC_CLIENT_ID
+      client_secret: GITEA_OIDC_CLIENT_SECRET
+      discovery: GITEA_OIDC_DISCOVERY
+
+  - name: n8n
+    slug: n8n
+    description: n8n OIDC library only (do not enable n8n SSO)
+    name_in_app: authentik
+    type: oauth2
+    launch: "https://{N8N_DOMAIN}"
+    bind_groups:
+      - n8n
+    provider:
+      name: n8n
+      client_type: confidential
+      consent: implicit
+      grant_types: authorization_code, refresh_token
+      scopes: openid, email, profile, offline_access, groups
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{N8N_DOMAIN}/rest/sso/oidc/callback"
+    secrets:
+      file: instance/n8n/.env.oidc
+      client_id: N8N_OIDC_CLIENT_ID
+      client_secret: N8N_OIDC_CLIENT_SECRET
+      discovery: N8N_OIDC_DISCOVERY
+
+  - name: Netbird
+    slug: netbird
+    description: NetBird dashboard OIDC (keep embedded Dex)
+    name_in_app: Authentik
+    type: oauth2
+    launch: "https://{NETBIRD_DOMAIN}"
+    bind_groups:
+      - netbird
+    provider:
+      name: netbird
+      client_type: public
+      consent: implicit
+      grant_types: authorization_code, refresh_token, client_credentials, password, urn:ietf:params:oauth:grant-type:device_code
+      scopes: email, openid, profile, offline_access, goauthentik.io/api
+      signing_key: authentik Self-signed Certificate
+      sub_mode: hashed_user_id
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{NETBIRD_DOMAIN}/nb-auth"
+        - matching: strict
+          kind: authorization
+          url: "https://{NETBIRD_DOMAIN}/nb-silent-auth"
+        - matching: strict
+          kind: authorization
+          url: "https://{NETBIRD_DOMAIN}/peers"
+        - matching: strict
+          kind: authorization
+          url: "https://{NETBIRD_DOMAIN}/auth"
+        - matching: strict
+          kind: authorization
+          url: "https://{NETBIRD_DOMAIN}/silent-auth"
+        - matching: strict
+          kind: authorization
+          url: http://localhost:53100
+        - matching: strict
+          kind: authorization
+          url: http://localhost:53000
+    secrets:
+      file: instance/netbird-server/.env.oidc
+      client_id: NETBIRD_AUTH_CLIENT_ID
+
+  - name: FileFlows
+    slug: fileflows
+    description: FileFlows reverse proxy FA
+    type: proxy
+    launch: "https://{FILEFLOWS_DOMAIN}"
+    bind_groups:
+      - fileflows
+    provider:
+      name: FileFlows
+      external_host: "https://{FILEFLOWS_DOMAIN}"
+      mode: forward_single
+
+  - name: HandBrake
+    slug: handbrake
+    description: HandBrake reverse proxy FA
+    type: proxy
+    launch: "https://{HANDBRAKE_DOMAIN}"
+    bind_groups:
+      - handbrake
+    provider:
+      name: HandBrake
+      external_host: "https://{HANDBRAKE_DOMAIN}"
+      mode: forward_single
+
+  - name: JDownloader
+    slug: jdownloader
+    description: JDownloader reverse proxy FA
+    type: proxy
+    launch: "https://{JDOWNLOADER_DOMAIN}"
+    bind_groups:
+      - jdownloader
+    provider:
+      name: JDownloader
+      external_host: "https://{JDOWNLOADER_DOMAIN}"
+      mode: forward_single
+
+  - name: NocoDB
+    slug: nocodb
+    description: NocoDB reverse proxy FA
+    type: proxy
+    launch: "https://{NOCODB_DOMAIN}"
+    bind_groups:
+      - nocodb
+    provider:
+      name: nocodb FA
+      external_host: "https://{NOCODB_DOMAIN}"
+      mode: forward_single
+
+  - name: Postiz
+    slug: postiz
+    description: Social scheduling OIDC
+    name_in_app: Authentik
+    type: oauth2
+    launch: "https://{POSTIZ_DOMAIN}"
+    bind_groups:
+      - postiz
+    provider:
+      name: postiz
+      client_type: confidential
+      consent: implicit
+      grant_types:
+        - authorization_code
+        - refresh_token
+      scopes:
+        - openid
+        - email
+        - profile
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{POSTIZ_DOMAIN}/settings"
+    secrets:
+      file: instance/postiz/.env.oidc
+      client_id: POSTIZ_OIDC_CLIENT_ID
+      client_secret: POSTIZ_OIDC_CLIENT_SECRET
+      discovery: POSTIZ_OIDC_DISCOVERY
+
+  - name: Tandoor Recipes
+    slug: tandoor-recipes
+    description: Family recipes OIDC
+    name_in_app: Authentik
+    bind_groups:
+      - tandoor-recipes
+    provider:
+      name: tandoor-recipes
+      client_type: confidential
+      consent: implicit
+      grant_types:
+        - authorization_code
+        - refresh_token
+      scopes:
+        - openid
+        - email
+        - profile
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{TANDOOR_RECIPES_DOMAIN}/accounts/oidc/authentik/login/callback/"
+    secrets:
+      file: instance/tandoor-recipes/.env.oidc
+      client_id: TANDOOR_RECIPES_OIDC_CLIENT_ID
+      client_secret: TANDOOR_RECIPES_OIDC_CLIENT_SECRET
+      discovery: TANDOOR_RECIPES_OIDC_DISCOVERY
+
+  - name: HomeBox
+    slug: homebox
+    description: Home inventory OIDC
+    name_in_app: Authentik
+    launch: "https://{HOMEBOX_DOMAIN}"
+    bind_groups:
+      - homebox
+    provider:
+      name: homebox
+      client_type: confidential
+      consent: implicit
+      grant_types:
+        - authorization_code
+        - refresh_token
+      scopes:
+        - openid
+        - email
+        - profile
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: strict
+          kind: authorization
+          url: "https://{HOMEBOX_DOMAIN}/api/v1/users/login/oidc/callback"
+    secrets:
+      file: instance/homebox/.env.oidc
+      client_id: HOMEBOX_OIDC_CLIENT_ID
+      client_secret: HOMEBOX_OIDC_CLIENT_SECRET
+      discovery: HOMEBOX_OIDC_DISCOVERY
+
+  - name: Gramps Web
+    slug: gramps
+    description: Genealogy OIDC
+    name_in_app: Authentik
+    launch: "https://{GRAMPS_DOMAIN}"
+    bind_groups:
+      - gramps
+    provider:
+      name: gramps
+      client_type: confidential
+      consent: implicit
+      grant_types:
+        - authorization_code
+        - refresh_token
+      scopes:
+        - openid
+        - email
+        - profile
+        - groups
+      signing_key: authentik Self-signed Certificate
+      redirects:
+        - matching: regex
+          kind: authorization
+          url: "https://{GRAMPS_DOMAIN}/api/oidc/callback/.*"
+    secrets:
+      file: instance/gramps-web/.env.oidc
+      client_id: GRAMPS_OIDC_CLIENT_ID
+      client_secret: GRAMPS_OIDC_CLIENT_SECRET
+      discovery: GRAMPS_OIDC_DISCOVERY
+
+  - name: FreeShow
+    slug: freeshow
+    description: FreeShow stub (no provider yet)
+    type: stub
+    bind_groups:
+      - freeshow

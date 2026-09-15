@@ -1,0 +1,17 @@
+# apps / teaching_instruments
+- name: teaching-instruments
+  idea: Teacher instruments
+  parents: cloud, freeshow
+  nextcloud:
+    entitlement: teaching_instruments
+    quota: 45GB
+- name: teaching-instruments/library
+  idea: Full library
+  parents: cloud
+  nextcloud:
+    entitlement: teaching_instruments-library
+- name: teaching-instruments/library/read
+  idea: Library read-only
+  parents: cloud
+  nextcloud:
+    entitlement: teaching_instruments-library-read

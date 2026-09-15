@@ -1,0 +1,18 @@
+name: nc-aio-apply
+
+services:
+  nc-aio-apply:
+    image: docker:27-cli
+    container_name: nc-aio-apply
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/nc-aio-apply:/out
+      - /mnt/apps/dockge/master-nextcloud-aio:/stack:ro
+    working_dir: /stack
+    command: ["sh", "/stack/scripts/host-apply.sh"]
+    environment:
+      OUT_DIR: /out
+      STACK_DIR: /stack
+      HOST_OUT: /mnt/apps/dockge/nc-aio-apply
+      HOST_STACK: /mnt/apps/dockge/master-nextcloud-aio

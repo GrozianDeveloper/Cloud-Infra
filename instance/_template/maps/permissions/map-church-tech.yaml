@@ -1,0 +1,42 @@
+# church / tech
+- name: Техно
+  idea: Технологическая команда
+  parents: Техно/Общее, Оператор, home/operator, cloud/talk, cloud/desktop-workspace, cloud/mail, cloud/ai, cloud/full-text-search, cloud/giphy, cloud/youtube, cloud/sharing
+  nextcloud:
+    entitlement: tech
+    quota: 25GB
+    organization: Бахчисарайская Церковь
+    team: Техно Команда
+- name: Техно/Лидер
+  idea: Лидер технологической команды
+  parents: Техно, wordpress/admin_panel/admin, cloud/announcements, home/cctv
+  nextcloud:
+    entitlement: tech-lead
+    organization: Бахчисарайская Церковь
+    team: Техно - Лидеры
+    collectives:
+      - name: Техно Команда
+        role: admin
+      - name: Церковь - Лидеры
+        role: manager
+- name: Техно/Общее
+  idea: Общие церковные технологии
+  parents: gitea
+  nextcloud:
+    entitlement: tech-common
+    organization: Бахчисарайская Церковь
+    team: Техно - Общие
+- name: Техно/Cloud-Infra/Devops
+  idea: cloud-infra all (vpn + apps)
+  parents: cloud-infra/vpn, cloud-infra/proxmox/ui, cloud-infra/proxmox/ssh, cloud-infra/proxmox, cloud-infra/truenas/ui, cloud-infra/truenas/ssh, cloud-infra/truenas, cloud-infra/nextcloud-master/ui, cloud-infra/dockge/ui
+  netbird:
+    group: cloud-infra-devops
+    network: cloud-infra
+  notes: after apply, add to_God_we_serve
+- name: Техно/Local-Infra/Devops
+  idea: local-infra all (vpn + lan + presenter)
+  parents: local-infra/vpn, local-infra/lan, local-infra/presenters/static/ui
+  netbird:
+    group: local-infra-devops
+    network: local-infra
+  notes: after apply, add to_God_we_serve

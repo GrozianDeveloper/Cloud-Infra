@@ -1,0 +1,20 @@
+# One-shot: print tandoor recipes container logs.
+name: tandoor-logs
+services:
+  logs:
+    image: docker:27-cli
+    container_name: tandoor-logs
+    restart: "no"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /mnt/apps/dockge/tandoor-logs:/out
+    command:
+      - sh
+      - -c
+      - |
+        {
+          docker ps -a --filter name=ix-tandoor-recipes --format '{{.Names}} {{.Status}}'
+          c=$$(docker ps -a --filter name=ix-tandoor-recipes --format '{{.Names}}' | grep recipes | grep -v postgres | grep -v permission | grep -v upgrade | head -n1)
+          echo CONTAINER:$$c
+          docker logs $$c 2>&1 | grep -E 'Migrat|Waiting for database|Database not|Shutting|ERROR|Operations to perform|Applying |auth_user|DisallowedHost|Starting gunicorn|Done' | tail -n 80
+        } > /out/out.txt 2>&1

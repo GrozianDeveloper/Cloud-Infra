@@ -1,0 +1,4 @@
+# apps
+cloud: map-apps-cloud.yaml
+instruments: map-apps-instruments.yaml
+teaching_instruments: map-teaching_instruments.yaml

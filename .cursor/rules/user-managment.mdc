@@ -1,0 +1,24 @@
+---
+description: When work related to user permissions, auth
+alwaysApply: false
+---
+• Maps: [index](instance/maps/index.md), [permissions](instance/maps/permissions/Readme.md)
+Rule: `.cursor/rules/maps.mdc`.
+
+# Gave permission by assigning user in Authentik groups
+
+• Dont give permission directly to a user, instead create Authentik group & add user to this group
+
+## Example: User asked to create "Медиа - команду", Team Folder & Docs in Nextcloud:
+
+1. Add groups to the right YAML under [permissions](instance/maps/permissions/Readme.md)
+2. apply Authentik
+3. apply Nextcloud
+4. login user (using n8n workflow)
+
+# When integrate new app with Authentik, behind reverse-proxy 
+
+Goal: manage users access
+0. Read application's docs — both `{app}/README.md` + `{app}/docs/` and `instance/{app}/Readme.md`:
+1. If theres multiple integrations options (eg IdP, OIDC...) - Ask user
+Tell user results of each options: preffered: IdP (so all user managment in single place - Authentik)

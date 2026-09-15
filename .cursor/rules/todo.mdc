@@ -1,0 +1,10 @@
+---
+alwaysApply: true
+---
+
+# Check `todo/`
+
+- when working on apps, check maybe theres todo in that app related to that work
+eg `todo/fileflows/flows/...` or `todo/nextcloud-aio/...` or `todo/truenas/databases/...`
+
+# When something must be done later, add in `todo/`

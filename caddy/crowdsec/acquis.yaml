@@ -1,0 +1,7 @@
+# Tail Caddy JSON access logs (CADDY_LOGS_PATH -> /var/log/caddy).
+# `type: caddy` is what crowdsecurity/caddy filters on — do not rename.
+---
+filenames:
+  - /var/log/caddy/*-access.log
+labels:
+  type: caddy

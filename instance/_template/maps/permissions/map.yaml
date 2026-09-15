@@ -1,0 +1,31 @@
+# Categories → map-{category}.yaml → map-{category}-{sub}.yaml
+quota:
+  mode: sum
+paths:
+  - path: users
+    priority: -1
+  - path: прихожане
+    priority: 0
+    groups:
+      - Прихожанин
+  - path: прихожане/гости
+    priority: 1
+    groups:
+      - Гость
+  - path: family name
+    priority: 10
+    groups:
+      - name
+  - path: церковь
+    priority: 70
+    groups:
+      - Церковь
+  - path: goauthentik.io/services
+    priority: 100
+  - path: goauthentik.io/outposts
+    priority: 101
+categories:
+  apps: map-apps.yaml
+  church: map-church.yaml
+  home: map-home.yaml
+  services: map-services.yaml
