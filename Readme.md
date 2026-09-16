@@ -40,38 +40,38 @@ How-to pages: [docs/installation_guide](docs/installation_guide/01-router-portfo
 ```mermaid
 flowchart TD
     Internet -->|"TCP 80/443 + UDP 443"| Router
-    Router -->|"HTTPS 1,2,3"| Caddy[Caddy<br/>CrowdSec]
+    Router -->|"HTTPS 1,2,3"| Caddy["Caddy<br/>CrowdSec"]
 
-    subgraph BEHIND_CADDY[Caddy & CrowdSec]
-        Caddy -->|"NEXTCLOUD_DOMAIN"| NextcloudAIO[[**Nextcloud**<br/>Center point of user workflows<br/>*NEXTCLOUD_UPSTREAM*]]
-        Caddy -->|"AUTH_DOMAIN"| Authentik[[**Authentik**<br/>IDP & SSO<br/>*AUTHENTIK_UPSTREAM*]]
-        Caddy -->|"N8N_DOMAIN"| n8n[[**n8n**<br/>Center of automations<br/>*N8N_UPSTREAM*]]
-        Caddy -->|"FILEFLOWS_DOMAIN"| FileFlows[[**FileFlows**<br/>n8n integration for Media automations<br/>*FILEFLOWS_UPSTREAM*]]
-        Caddy -->|"HANDBRAKE_DOMAIN"| HandBrake[[**HandBrake**<br/>Manual Media conversions<br/>*HANDBRAKE_UPSTREAM*]]
-        Caddy -->|"GIT_DOMAIN"| Gitea[[**Gitea**<br/>Git / Actions<br/>*GIT_UPSTREAM*]]
-        Gitea -->|"GIT_DOMAIN"| Gitea_Runner[[**Gitea Act Runner**<br/>CI runners<br/>*no public port; talks to Gitea*]]
-        Caddy -->|"WORDPRESS_DOMAIN"| Wordpress[[**Wordpress**<br/>Public website<br/>*WORDPRESS_UPSTREAM*]]
-        Caddy -->|"NOCODB_DOMAIN"| NocoDB[[**NocoDB**<br/>Content manager for websites<br/>*NOCODB_UPSTREAM*]]
-        Caddy -->|"NETBIRD_DOMAIN"| Netbird[[**Netbird Server**<br/>VPNs & dashboard<br/>SPA *NETBIRD_UPSTREAM* + gRPC *NETBIRD_MGMT_UPSTREAM*; STUN :30417]]
-        Caddy -->|"POSTIZ_DOMAIN"| Postiz[[**Postiz**<br/>Social scheduling church + Bless Time<br/>*POSTIZ_UPSTREAM*]]
-        Caddy -->|"TANDOOR_RECIPES_DOMAIN"| Tandoor[[**Tandoor Recipes**<br/>Family recipes; OIDC, no Caddy FA<br/>*TANDOOR_RECIPES_UPSTREAM*]]
-        Caddy -->|"HOMEBOX_DOMAIN"| HomeBox[[**HomeBox**<br/>Inventory; OIDC, no Caddy FA<br/>*HOMEBOX_UPSTREAM*]]
-        Caddy -->|"GRAMPS_DOMAIN"| Gramps[[**Gramps Web**<br/>Genealogy; OIDC, multi-tree, no Caddy FA<br/>*GRAMPS_UPSTREAM*]]
+    subgraph BEHIND_CADDY["Caddy & CrowdSec"]
+        Caddy -->|"NEXTCLOUD_DOMAIN"| NextcloudAIO["<b>Nextcloud</b><br/>Center point of user workflows<br/><i>NEXTCLOUD_UPSTREAM</i>"]
+        Caddy -->|"AUTH_DOMAIN"| Authentik["<b>Authentik</b><br/>IDP & SSO<br/><i>AUTHENTIK_UPSTREAM</i>"]
+        Caddy -->|"N8N_DOMAIN"| n8n["<b>n8n</b><br/>Center of automations<br/><i>N8N_UPSTREAM</i>"]
+        Caddy -->|"FILEFLOWS_DOMAIN"| FileFlows["<b>FileFlows</b><br/>n8n integration for Media automations<br/><i>FILEFLOWS_UPSTREAM</i>"]
+        Caddy -->|"HANDBRAKE_DOMAIN"| HandBrake["<b>HandBrake</b><br/>Manual Media conversions<br/><i>HANDBRAKE_UPSTREAM</i>"]
+        Caddy -->|"GIT_DOMAIN"| Gitea["<b>Gitea</b><br/>Git / Actions<br/><i>GIT_UPSTREAM</i>"]
+        Gitea -->|"GIT_DOMAIN"| Gitea_Runner["<b>Gitea Act Runner</b><br/>CI runners<br/><i>no public port; talks to Gitea</i>"]
+        Caddy -->|"WORDPRESS_DOMAIN"| Wordpress["<b>Wordpress</b><br/>Public website<br/><i>WORDPRESS_UPSTREAM</i>"]
+        Caddy -->|"NOCODB_DOMAIN"| NocoDB["<b>NocoDB</b><br/>Content manager for websites<br/><i>NOCODB_UPSTREAM</i>"]
+        Caddy -->|"NETBIRD_DOMAIN"| Netbird["<b>Netbird Server</b><br/>VPNs & dashboard<br/>SPA <i>NETBIRD_UPSTREAM</i> + gRPC <i>NETBIRD_MGMT_UPSTREAM</i>; STUN :30417"]
+        Caddy -->|"POSTIZ_DOMAIN"| Postiz["<b>Postiz</b><br/>Social scheduling church + Bless Time<br/><i>POSTIZ_UPSTREAM</i>"]
+        Caddy -->|"TANDOOR_RECIPES_DOMAIN"| Tandoor["<b>Tandoor Recipes</b><br/>Family recipes; OIDC, no Caddy FA<br/><i>TANDOOR_RECIPES_UPSTREAM</i>"]
+        Caddy -->|"HOMEBOX_DOMAIN"| HomeBox["<b>HomeBox</b><br/>Inventory; OIDC, no Caddy FA<br/><i>HOMEBOX_UPSTREAM</i>"]
+        Caddy -->|"GRAMPS_DOMAIN"| Gramps["<b>Gramps Web</b><br/>Genealogy; OIDC, multi-tree, no Caddy FA<br/><i>GRAMPS_UPSTREAM</i>"]
     end
 
-    subgraph LAN[Lan Only]
-        Dockge[[**Dockge**<br/>Non TrueNAS-native apps manager<br/>*:8443*]]
-        NEXTCLOUD_MCP[[**Nextcloud MCP**<br/>*:31800*]]
-        AdguardHome[[**AdguardHome**<br/>Local DNS rewrites<br/>*:30004*]]
+    subgraph LAN["LAN Only"]
+        Dockge["<b>Dockge</b><br/>Non TrueNAS-native apps manager<br/>:8443"]
+        NEXTCLOUD_MCP["<b>Nextcloud MCP</b><br/>:31800"]
+        AdguardHome["<b>AdguardHome</b><br/>Local DNS rewrites<br/>:30004"]
     end
 
-    subgraph HOST[Hosts]
-        Proxmox[[**Proxmox**<br/>Host hypervisor<br/>PVE_URL (:8006)]]
-        TrueNAS[[**TrueNAS**<br/>NAS + Apps<br/>TRUENAS_URL (:880/8443)]]
+    subgraph HOST["Hosts"]
+        Proxmox["<b>Proxmox</b><br/>Host hypervisor<br/>PVE_URL :8006"]
+        TrueNAS["<b>TrueNAS</b><br/>NAS + Apps<br/>TRUENAS_URL :880/8443"]
         Proxmox -->|"VM 100"| TrueNAS
     end
 
-    # Application's global & instance Documentation
+    %% Application global & instance documentation
     click Caddy "caddy/README.md" "instance/caddy/Readme.md"
     click NextcloudAIO "master-nextcloud-aio/README.md" "instance/master-nextcloud-aio/Readme.md"
     click Authentik "authentik/README.md" "instance/authentik/Readme.md"
