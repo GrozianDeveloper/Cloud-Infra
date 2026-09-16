@@ -6,18 +6,19 @@ Domains and upstreams: `instance/caddy/.env` (`{APP}_DOMAIN`, `{APP}_UPSTREAM`).
 
 ```mermaid
 flowchart TD
-    INET[Internet] -->|"TCP 80/443 + UDP 443"| RTR[Router / Firewall]
-    RTR -->|"80/443 TCP+UDP → Caddy"| CADDY[Caddy<br/>h1+h2+h3, CrowdSec]
+    INET["Internet"] -->|"TCP 80/443 + UDP 443"| RTR["Router / Firewall"]
+    RTR -->|"80/443 TCP+UDP → Caddy"| CADDY["Caddy<br/>h1 + h2 + h3, CrowdSec"]
 
-    LocalDNS[Local DNS] --> CADDY
+    LocalDNS["Local DNS"] --> CADDY
 
-    CADDY -->|"{APP}_DOMAIN"| Application[<b>Application</b><br/>"{APP}_UPSTREAM"]
+    CADDY -->|"{APP}_DOMAIN"| Application["<b>Application</b><br/>{APP}_UPSTREAM"]
 
-    LAN[LAN Device] -->|host port| DCK[LAN-only app]
+    LAN["LAN Device"] -->|"host port"| DCK["LAN-only app"]
 
-    DCK -.manages.-> CADDY
-    DCK -.manages.-> NCAIO
-    RTR -.UDP STUN + Talk TURN.-> DIRECT[Bypass Caddy]
+    DCK -.->|"manages"| CADDY
+    DCK -.->|"manages"| NCAIO["Nextcloud AIO"]
+
+    RTR -.->|"UDP STUN + Talk TURN"| DIRECT["Bypass Caddy"]
 ```
 
 ## Core Principle
